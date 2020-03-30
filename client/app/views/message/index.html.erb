@@ -1,0 +1,48 @@
+<h1>Message#index</h1>
+<p>Index</p>
+<div class="messages"></div>
+<script>
+    window.onload = websocket;
+    function websocket() {
+        state = false;
+        console.log("WebSocket" in window);
+        if ("WebSocket" in window)
+        {
+            var ws = new WebSocket("ws://localhost:3000/cable");
+
+            ws.onopen = function()
+            {
+                $('.messages').append("<p>Connected</p>");
+                const subscribe = {
+                    command: 'subscribe',
+                    identifier: JSON.stringify({
+                        channel: "MessagesChannel"
+                    })
+                };
+                const payload = JSON.stringify(subscribe);
+                ws.send(payload);
+            };
+
+            ws.onmessage = function (evt) {
+                var message = JSON.parse(evt.data);
+                if(message && message.identifier && message.message) {
+                    $('.messages').append("<p>" + message.message.message + "</p>");
+                }
+            };
+
+            ws.onclose = function()
+            {
+                $('.messages').append("<p>Connection is closed</p>");
+            };
+
+            window.onbeforeunload = function(event) {
+                ws.close();
+            };
+        }
+
+        else
+        {
+            alert("WebSocket NOT supported by your Browser!");
+        }
+    }
+</script>
